@@ -8,9 +8,10 @@ using System;
 
 public class NasaApiClient : MonoBehaviour
 {
-    public string apiKey = "wfvy9ZYYbORLrf7GwppHhvBU173z8vaE2q1zWDxb"; // Replace with your NASA API key
+    public string apiKey = "DEMO_KEY"; // Replace with your NASA API key
     public string apiUrl = "https://api.nasa.gov/planetary/earth/imagery?lon=100.75&lat=1.5&date=2014-02-01&api_key=";
 
+    //Unity UI objects
     public TMP_Text titleText;
     public TMP_Text date;
     public TMP_Text explanationText;
@@ -23,50 +24,67 @@ public class NasaApiClient : MonoBehaviour
 
     IEnumerator GetNasaData()
     {
+        //compiles the Desired API URL with your API Key
         string fullUrl = apiUrl + apiKey;
+
+        //This is where the API is called
         UnityWebRequest request = UnityWebRequest.Get(fullUrl);
 
         yield return request.SendWebRequest();
 
+        //Checks for the success of API call
+
+        //If the API request fails
         if (request.result != UnityWebRequest.Result.Success)
         {
             Debug.LogError(request.error);
         }
+        //If the API request is successful
         else
         {
+            //The API response is saved inside a string value using the download handler
             string jsonResponse = request.downloadHandler.text;
+            //The string is sent through to the ProcessData function, where the API reponse will be processed into Unity readable data
             ProcessData(jsonResponse);
-
         }
     }
 
     void ProcessData(string jsonResponse)
     {
-        Debug.Log(jsonResponse);
-        // You can parse the JSON response and use the data as needed.
+        // The JSON is parsed and the required values are identified through the EarthImageryData class
         NasaData data = JsonUtility.FromJson<NasaData>(jsonResponse);
+
+        //The individual pieces of data are now applied to the different Unity UI objects
         titleText.text = data.title;
         explanationText.text = data.explanation;
-        date.text = data.date;
+        date.text = "Date: " +data.date;
+        explanationText.alignment = TextAlignmentOptions.TopFlush;
+
+        //This function is called to process the image and apply it to a Unity Image UI Object
         StartCoroutine(LoadImage(data.hdurl));
     }
 
     IEnumerator LoadImage(string imageUrl)
     {
+        //A web request is made to get a texcture using the image URL
         UnityWebRequest request = UnityWebRequestTexture.GetTexture(imageUrl);
         yield return request.SendWebRequest();
+
+        //Checking if the image request is successfull
+
+        //On unsuccessfull request
         if (request.result != UnityWebRequest.Result.Success)
         {
             Debug.LogError(request.error);
         }
+        //On successfull request
         else
         {
+            //A private Texture2D variable gets data from the successfull request, and the requested image is assigned to it after download
             Texture2D texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+            //A new texture is created and applied on the Unity Image UI object using the Texture2D from before
             image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
         }
         
     }
 }
-
-//class jsonss
-//{//"copyright":"The Deep Sky Collective","date":"2024-12-13","explanation":"An intriguing pair of interacting galaxies, M51 is the 51st entry in Charles Messier's famous catalog. Perhaps the original spiral nebula, the large galaxy with whirlpool-like spiral structure seen nearly face-on is also cataloged as NGC 5194. Its spiral arms and dust lanes sweep in front of its smaller companion galaxy, NGC 5195. Some 31 million light-years distant, within the boundaries of the well-trained constellation Canes Venatici, M51 looks faint and fuzzy to the eye in direct telescopic views. But this remarkably deep image shows off stunning details of the galaxy pair's striking colors and fainter tidal streams. The image includes extensive narrowband data to highlight a vast reddish cloud of ionized hydrogen gas recently discovered in the M51 system and known to some as the H-alpha cliffs. Foreground dust clouds in the Milky Way and distant background galaxies are captured in the wide-field view. A continuing collaboration of astro-imagers using telescopes on planet Earth assembled over 3 weeks of exposure time to create this evolving portrait of M51.  Watch: The 2024 Geminid Meteor Shower","hdurl":"https://apod.nasa.gov/apod/image/2412/M51_HaLRGB_APOD2048.jpg","media_type":"image","service_version":"v1","title":"M51: Tidal Streams and H-alpha Cliffs","url":"https://apod.nasa.gov/apod/image/2412/M51_HaLRGB_APOD1024.jpg"}
