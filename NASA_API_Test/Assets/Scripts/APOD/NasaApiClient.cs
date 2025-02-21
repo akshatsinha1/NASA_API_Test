@@ -88,3 +88,12 @@ public class NasaApiClient : MonoBehaviour
         
     }
 }
+
+[Serializable]
+public class NasaData
+{
+    public string title;
+    public string hdurl;
+    public string explanation;
+    public string date;
+}
